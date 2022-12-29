@@ -1,0 +1,22 @@
+library(dplyr)
+top3 = spearman = matrix(nrow=10, ncol=2)
+colnames(top3) = colnames(spearman) = c('sbv', 'emsbe')
+for (i in 1:10) {
+  metrics = read.csv(paste('allMetrics_seed=', 41+i, '.csv', sep=''))
+  best = metrics %>% arrange(-survVec) %>% head(3) %>% select(survVec) %>% unlist() %>% mean()
+  worst = metrics %>% arrange(survVec) %>% head(3) %>% select(survVec) %>% unlist() %>% mean()
+  standardize = function(x) (x-worst)/(best-worst)
+  top3[i,'sbv'] = metrics %>% arrange(sbvVec) %>% head(3) %>% select(survVec) %>% unlist() %>% mean() %>% standardize()
+  spearman[i,'sbv'] = cor(metrics$sbvVec, metrics$survVec, method='spearman')
+  top3[i,'emsbe'] = metrics %>% arrange(emsbeVec) %>% head(3) %>% select(survVec) %>% unlist() %>% mean() %>% standardize()
+  spearman[i,'emsbe'] = cor(metrics$emsbeVec, metrics$survVec, method='spearman')
+
+}
+print('top-3 policy value (mean)')
+colMeans(top3)
+print('top-3 policy value (sd)')
+apply(top3, 2, sd)
+print('spearman (mean)')
+colMeans(spearman)
+print('spearman (sd)')
+apply(spearman, 2, sd)
