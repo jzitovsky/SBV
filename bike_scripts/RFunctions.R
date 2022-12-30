@@ -91,8 +91,8 @@ getLongData = function(Phi, A, U, mu = function(x) 0.5, returnMatrix=T, makeInte
 
 
 #tree-based fitted Q-iteration fitting function
-QComputationsTrees = function(simData, gamma=0.99, mtryArg=NULL, nodesizeArg=50, seed=42,  
-                              inclAct=F, maxiter=200, joint=T, ntreeArg=50,  ...) {
+QComputationsTrees = function(simData, gamma=0.99, mtryArg=NULL, nodesizeArg=50, seed=42, nthreadArg=NULL,  
+                              inclAct=F, maxiter=200, joint=T, ntreeArg=50, terminal='auto',  ...) {
   longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U, makeIntercept = F, returnMatrix = F)
   t = longData$t; n = max(longData$i)
   finalTime = is.na(longData$U); U = longData$U[!finalTime]
@@ -100,7 +100,8 @@ QComputationsTrees = function(simData, gamma=0.99, mtryArg=NULL, nodesizeArg=50,
   SC = sLong[!finalTime,]; SN = sLong[t>1,]; AC = as.factor(longData$A[!finalTime])
   if (is.null(mtryArg)) mtryArg=ncol(SC)+1
   actionSpace = sort(unique(AC))
-  terminal = as.numeric(finalTime)
+  if (is.null(terminal)) terminal = rep(0, nrow(longData))
+  if (length(terminal)==1) if (terminal=='auto') terminal = as.numeric(finalTime)
   terminalC = terminal[!finalTime]; terminalN = terminal[t>1]
   
   QArrowOld = QArrow = SNList = fit = list()
@@ -119,7 +120,7 @@ QComputationsTrees = function(simData, gamma=0.99, mtryArg=NULL, nodesizeArg=50,
           QArrow[[i]] = (1-terminalN)*predict(fit, SNList[[i]], seed=seed, num.threads=nthreadArg)$predictions
         }
       } else {
-        for (i in 1:length(actionSpace)) QArrow[[i]] = (1-terminalN)*predict(fit[[i]], SN, seed=seed)$predictions
+        for (i in 1:length(actionSpace)) QArrow[[i]] = (1-terminalN)*predict(fit[[i]], SN, seed=seed, num.threads=nthreadArg)$predictions
       }
     }
     QMax = rep(-Inf, length(U))

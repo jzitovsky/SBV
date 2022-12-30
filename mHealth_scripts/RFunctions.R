@@ -24,8 +24,7 @@ getLongData = function(Phi, A, U, mu = function(x) 0.5) {
   UVec = as.vector(t(U)); AVec = as.vector(t(A))
   i = rep(1:n, each=capT+1); t = rep(1:(capT+1), n)
   longData = cbind(PhiMat, AVec, UVec, i, t)
-  start = ifelse(makeIntercept, 2, 1)
-  missing = apply(as.matrix(longData[,start:(ncol(PhiMat)+start-1)]), 1, function(x) all(is.na(x)))
+  missing = apply(as.matrix(longData[,1:(ncol(PhiMat))]), 1, function(x) all(is.na(x)))
   longData = longData[!missing, ]
   colnames(longData) = c(paste0("S",1:p),"A","U",'i','t')
   longData = as.data.frame(longData)
@@ -33,10 +32,85 @@ getLongData = function(Phi, A, U, mu = function(x) 0.5) {
 }
 
 
+
+# Estimate Policies by LSPI
+linearT = function(S) cbind(1,S)
+quadratic = function(S) cbind(1, model.matrix(~-1+.^2, data=as.data.frame(S)), S^2)
+cubic = function(S) {
+  if (nrow(S)>1) return(cbind(1, model.matrix(~-1+.^3, data=as.data.frame(S))[,-c(1:ncol(S))], model.matrix(~-1+I(S^2)*S)))
+  if (nrow(S)==1) return(cbind(1, t(model.matrix(~-1+.^3, data=as.data.frame(S))[,-c(1:ncol(S))]), model.matrix(~-1+I(S^2)*S)))
+}
+arbPoly = function(S, degree=4) {
+  if (degree==1) {
+    return(linearT(S))
+  } else if (degree==2) {
+    return(quadratic(S))
+  } else if (degree==3) {
+    return(cubic(S))
+  } else {
+    return(cbind(1, poly(S, degree=degree, raw=T, simple=T)))
+  }
+}
+norm_vec = function(x) sqrt(sum(x^2))
+LSPISolve = function(simData, tolerance=1e-8, maxiter=50, degree=1, 
+                     gamma=0.9, lambda=0, seed=NULL) {
+  varList = list(pi=NULL, degree=NULL, transform=NULL, QFun=NULL, w=NULL, eps=NULL, criterion=NULL, iter=NULL)
+  varList$degree = degree
+  varList$transform = function(S) arbPoly(S, degree=varList$degree)
+  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U)
+  t = longData$t; n = max(longData$i); m = nrow(longData); finalTime = is.na(longData$U)
+  U = longData$U[!finalTime]; AC = longData$A[!finalTime]
+  Phi = longData %>% select(-c(A,U,i,t)) %>% as.matrix() %>% varList$transform()
+  PhiC = Phi[!finalTime,]; PhiN = Phi[t>1,]; rm(Phi)
+  terminal = rep(0, nrow(longData)) 
+  terminalC = terminal[!finalTime]; terminalN = terminal[t>1]
+  X = cbind(PhiC, AC*PhiC)
+  scales = apply(X[,-c(1)], 2, sd)
+  P = diag(c(0, scales^2))
+  P[1,1] = P[ncol(X)/2+1,ncol(X)/2+1] = 0  
+  XtDiffCN = crossprod(X, PhiC-(1-terminalN)*gamma*PhiN)
+  XtXS = crossprod(X, X[,(ncol(X)/2+1):ncol(X)]) 
+  
+  iter=1
+  eps=rep(1, ncol(X))
+  if (!is.null(seed)) set.seed(seed)
+  piN = rbinom(nrow(PhiN), 1, 0.5)
+  wOld = w = rep(Inf, ncol(X)) 
+  while (norm_vec(eps)>tolerance & iter<=maxiter) {
+    Amat = cbind(XtDiffCN, XtXS-crossprod(X, (1-terminalN)*gamma*piN*PhiN))/m + lambda*P
+    b = crossprod(X, U/m)
+    w = solve(Amat)%*%b
+    eps = norm_vec(w-wOld)
+    piN = as.numeric(PhiN%*%w[(ncol(PhiN)+1):length(w)]>0)
+    wOld = w
+    iter = iter+1
+  }
+  varList$eps = eps
+  varList$w = w
+  varList$iter = iter
+  
+  varList$QFun = function(S, A, debug=F) {
+    Phi = varList$transform(S)
+    if (debug) browser()
+    cbind(Phi, A*Phi)%*%varList$w
+  }
+  
+  varList$pi = function(S) {
+    Phi = varList$transform(S)
+    as.numeric(Phi%*%varList$w[(ncol(Phi)+1):length(varList$w)]>0)
+  }
+  
+  piN = as.numeric(PhiN%*%w[(ncol(PhiN)+1):length(w)]>0)
+  varList$criterion = max(abs(t(X)%*%(U+(1-terminalN)*gamma*cbind(PhiN, piN*PhiN)%*%w-X%*%w)-m*lambda*P%*%w)) 
+  return(varList)
+}
+
+
+
 #tree-based fitted Q-iteration fitting function
 QComputationsTrees = function(simData, gamma=0.9, mtryArg=NULL, nodesizeArg=50, seed=42,
                               maxiter=200, ntreeArg=50, ...) {
-  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U, makeIntercept = F, returnMatrix = F)
+  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U)
   t = longData$t; n = max(longData$i)
   finalTime = is.na(longData$U); U = longData$U[!finalTime]
   sLong = longData %>% select(-c(A,U,i,t)) %>% as.matrix()
@@ -54,7 +128,7 @@ QComputationsTrees = function(simData, gamma=0.9, mtryArg=NULL, nodesizeArg=50, 
   iter = 1; eps = -1; asv = NULL
   while (iter<maxiter) {
     if (iter>1) {
-    for (i in 1:length(actionSpace)) QArrow[[i]] = (1-terminalN)*predict(fit[[i]], SN, seed=seed, num.threads=nthreadArg)$predictions
+    for (i in 1:length(actionSpace)) QArrow[[i]] = (1-terminalN)*predict(fit[[i]], SN, seed=seed)$predictions
     }
     QMax = rep(-Inf, length(U))
     for (i in 1:length(actionSpace)) QMax = pmax(QMax, QArrow[[i]])
@@ -154,7 +228,7 @@ LSPIEval = function(simData, policyFun, degree=1, lambda=0, gamma=0.9) {
   varList$pi = policyFun
   varList$degree = degree
   varList$transform = function(S) arbPoly(S, degree=varList$degree)
-  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U, makeIntercept = F, returnMatrix = F)
+  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U)
   t = longData$t; n = max(longData$i); m = nrow(longData); finalTime = is.na(longData$U)
   U = longData$U[!finalTime]; AC = longData$A[!finalTime]
   S = longData %>% select(-c(A,U,i,t)) %>% as.matrix()
@@ -189,7 +263,7 @@ LSPIEval = function(simData, policyFun, degree=1, lambda=0, gamma=0.9) {
 #Apply FQE using Tree-Based FQI
 FQETreesSep = function(simData, policyFun, seed=42, mtryArg=2, nodesizeArg=1, gamma=0.9, maxiter=200, ntreeArg=50) {
   returnList = list(pi, QFun=NULL, eps=NULL, fit=NULL, SC=NULL, actionSpace=NULL, seed=seed)
-  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U, makeIntercept = F, returnMatrix = F)
+  longData = getLongData(Phi = simData$S, A = simData$A, U = simData$U)
   t = longData$t; n = max(longData$i)
   finalTime = is.na(longData$U); U = longData$U[!finalTime]
   sLong = longData %>% select(-c(A,U,i,t)) %>% as.matrix()

@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 load('session_x=0.5.RData')
+set.seed(42)
 color = ifelse(rank(msbe)>4, ifelse(rank(msbe)>15, 'High', 'Moderate'), 'Low')
 color = factor(color, levels=c('High', 'Moderate', 'Low'))
 summary_dat = data.frame(stand_returns,color) %>% group_by(color) %>% summarize(min=min(stand_returns), max=max(stand_returns))

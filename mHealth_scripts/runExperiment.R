@@ -19,7 +19,7 @@ i=1
 for (degree in degrees) {
   for (lambda in lambdas) {
     policies[[i]] = LSPISolve(trainData, degree=degree, lambda=lambda, 
-                              gamma=gamma, seed=seed, terminal='zero')
+                              gamma=gamma, seed=seed)
     methods[i] = paste('degree=',degree,', lambda=', lambda, sep='')
     returns[i] = evalPolicy(policyFun=policies[[i]]$pi, capT=100, 
                             gamma=gamma)$sumReturn/100
@@ -30,7 +30,7 @@ for (degree in degrees) {
 for (mtry in mtrys) {
   for (mns in mnss) {
     policies[[i]] = QComputationsTrees(trainData, nodesizeArg=mns, mtryArg=mtry,
-                                       gamma=gamma, maxiter=100, joint=F, seed=seed, terminal=NULL)
+                                       gamma=gamma, maxiter=100, seed=seed)
     methods[i] = paste('mtry=',mtry,', mns=', mns, sep='')
     returns[i] = evalPolicy(policyFun=policies[[i]]$pi, capT=100, 
                             gamma=gamma)$sumReturn/100
@@ -47,13 +47,13 @@ set.seed(45)
 valData = genmodH(n = nVal, capT=capT)
 
 #get long data for train and validate
-ldTrain = getLongData(Phi = trainData$S, A = trainData$A, U = trainData$U, returnMatrix = F)
+ldTrain = getLongData(Phi = trainData$S, A = trainData$A, U = trainData$U)
 finalTime = is.na(ldTrain$U)
 S = ldTrain %>% filter(!finalTime) %>% select(-c(A,U,i,t)) %>% as.matrix()
 SN = ldTrain %>% filter(t>1) %>% select(-c(A,U,i,t)) %>% as.matrix()
 A = ldTrain$A[!finalTime]; U = ldTrain$U[!finalTime]
 terminal = terminalC = terminalN = 0 
-ldVal = getLongData(Phi = valData$S, A = valData$A, U = valData$U, returnMatrix = F)
+ldVal = getLongData(Phi = valData$S, A = valData$A, U = valData$U)
 finalTimeVal = is.na(ldVal$U)
 SVal = ldVal %>% filter(!finalTimeVal) %>% select(-c(A,U,i,t)) %>% as.matrix()
 SNVal = ldVal %>% filter(t>1) %>% select(-c(A,U,i,t)) %>% as.matrix()

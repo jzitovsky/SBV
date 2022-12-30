@@ -1,54 +1,13 @@
-#generate ultra simple simulation
+#setup
 args = commandArgs(trailingOnly=TRUE)
 x_choose = ifelse(is.na(args[1]), 0.5, as.double(args[1]))
-#print(x_choose)
-genmodS = function(n, capT, x=x_choose, custom=F, 
-                   policyFun=NULL, randomInit=F, beta=NULL) {
-  capT = capT + 1
-  S = array(NA, dim = c(n, 4, capT))
-  A = U = matrix(NA, nrow = n, ncol = capT)
-  S[,,1] = cbind(rnorm(n), rnorm(n), rnorm(n), rnorm(n))
-  
-  for (t in 2:capT) {
-    if (custom & !(t==2 & randomInit)) {
-      A[,t-1] = as.numeric(as.character(policyFun(S[,,t-1])))
-    } else {
-      A[,t-1] = rbinom(n, 1, prob = 0.5)
-    }
-    S[,1,t] = sqrt(x)*S[,1,t-1] + (A[,t-1]-0.5) + sqrt(0.75-x)*rnorm(n, 0, 1)
-    S[,2,t] = sqrt(4*x-2)*S[,2,t-1] + sqrt(3-4*x)*rnorm(n,0,1)
-    S[,3,t] = sqrt(4*x-2)*S[,3,t-1] + sqrt(3-4*x)*rnorm(n,0,1)
-    S[,4,t] = sqrt(4*x-2)*S[,4,t-1] + sqrt(3-4*x)*rnorm(n,0,1)
-    U[,t-1] = S[,1,t]
-  }
-  return(list(S = S, A = A, U = U))
-}
-
-#checking moments of genmodS
-set.seed(42)
-sim1Data = genmodS(n=10000,capT=100)
-S = sim1Data$S; A = sim1Data$A; R = sim1Data$U
-#rbind(apply(S[,,1:20],2,mean), apply(S[,,1:20],2,sd))
-#rbind(apply(S[,,21:40],2,mean), apply(S[,,21:40],2,sd))
-#rbind(apply(S[,,41:60],2,mean), apply(S[,,41:60],2,sd))
-#rbind(apply(S[,,61:80],2,mean), apply(S[,,61:80],2,sd))
-#rbind(apply(S[,,81:100],2,mean), apply(S[,,81:100],2,sd))
-
-
-
-
-
-
-#setup
 source('RFunctions.R')
-library('caret', warn.conflicts=F)
 options("scipen"=6, "digits"=6)
-options(max.print=1000)
 
 
 #calculate various policies and evaluate average returns
 set.seed(42); n=20; capT=25
-trainData = genmodS(n = n, capT = capT)
+trainData = genmodS(n = n, capT = capT, x=x_choose)
 degrees = seq(1,7)
 lambdas = c(1e-6, 1e-3, 0.01, 0.02, 0.1, 1, 3e+5)
 numPolicies = 29
@@ -66,8 +25,8 @@ for (degree in degrees) {
     policies[[i]] = QCompsRidge(trainData, transform=arbPoly, 
                                 degree=degree, lambda=lambda, maxiter=maxiter)
     methods[i] = paste('degree=',degree,', lambda=',lambda, sep='')
-    returns[i] = evalBeta(beta = NULL, genmod = genmodS, custom=T, 
-                          policyFun=policies[[i]]$pi, n=n)
+    returns[i] = evalBeta(custom=T, x=x_choose,
+                          policyFun=policies[[i]]$pi)
     i = i+1
   }
 }
@@ -79,7 +38,7 @@ for (degree in degrees) {
 #simulate large test dataset
 set.seed(43)
 n=6000; capT=100; gamma=0.9
-testData = genmodS(n=n, capT=capT)
+testData = genmodS(n=n, capT=capT, x=x_choose)
 ldTest = getLongData(Phi = testData$S, A = testData$A, U = testData$U, returnMatrix = F)
 finalTime = is.na(ldTest$U)
 states = ldTest %>% filter(!finalTime) %>% select(-c(A,U,i,t,propensities)) %>% as.matrix()
@@ -115,7 +74,7 @@ for (degree in degrees) {
 #estimate true optimal Q-function values on large online dataset
 set.seed(45)
 n=10000; capT=100; gamma=0.9
-onlineData = genmodS(n=n, capT=capT, custom=T, policyFun=function(x) rep(1,nrow(x)), randomInit=T)
+onlineData = genmodS(n=n, capT=capT, x=x_choose, custom=T, policyFun=function(x) rep(1,nrow(x)), randomInit=T)
 y = apply(onlineData$U, 1, function(x) sum(gamma^(0:(length(x)-1)) * x, na.rm=T))
 X = cbind(1,onlineData$S[,1,1], onlineData$A[,1])
 QStar = lm(y~X-1)
@@ -141,7 +100,7 @@ for (degree in degrees) {
 
 #simulate held-out validation set
 set.seed(45); n=5; capT=25
-valData = genmodS(n = n, capT = capT)
+valData = genmodS(n = n, capT = capT, x=x_choose)
 
 #get long data for train and validate
 ldTrain = getLongData(Phi = trainData$S, A = trainData$A, U = trainData$U, returnMatrix = F)
@@ -225,7 +184,7 @@ for (degree in degrees) {
 
 
 #adding true optimal Q-function to mix
-returns = c(returns, evalBeta(genmod = genmodS, custom=T, policyFun=function(x) rep(1,nrow(x))))
+returns = c(returns, evalBeta(x=x_choose, custom=T, policyFun=function(x) rep(1,nrow(x))))
 methods = c(methods, 'optimal')
 msbe = c(msbe, 0)
 pred_errs = c(pred_errs, 0)

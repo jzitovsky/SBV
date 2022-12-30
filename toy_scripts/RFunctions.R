@@ -1,12 +1,9 @@
-#setting options
-options(max.print=20)
-
 # libraries to run functions and simulations
-library(abind) 
-library(nnet)  
+library(abind)   
 library(MASS)  
-library(tidyverse, warn.conflicts=F)
+library(dplyr, warn.conflicts=F)
 library(pracma, warn.conflicts=F)
+library(caret, warn.conflicts=F)
 
 #simulation helper functions
 norm_vec = function(x) sqrt(sum(x^2))
@@ -31,8 +28,8 @@ select = dplyr::select
 
 
 #generate ultra simple simulation simulation
-genmodS = function(n, capT, x=x_choose, custom=F,
-                   policyFun=NULL, randomInit=F, beta=NULL) {
+genmodS = function(n, capT, x, custom=F,
+                   policyFun=NULL, randomInit=F) {
   capT = capT + 1
   S = array(NA, dim = c(n, 4, capT))
   A = U = matrix(NA, nrow = n, ncol = capT)
@@ -155,3 +152,13 @@ QCompsRidge = function(simData, tolerance=1e-4, maxiter=200, transform=linearT, 
   criterion = max(abs(t(X)%*%(U + gamma*QMaxN - QFun(PhiC, AC, terminalC))-m*lambda*P%*%theta))
   return(list(pi=pi, QFun=QFun, theta=theta, eps=eps, criterion=criterion, iter=iter))
 }
+
+
+#evaluate given linear policy
+evalBeta = function(n = 1000, capT = 100, seed=NULL, ...) {
+  set.seed(seed)
+  data = genmodS(n = n, capT = capT, ...)
+  value = mean(data$U, na.rm = T)
+  return(value)
+}
+
