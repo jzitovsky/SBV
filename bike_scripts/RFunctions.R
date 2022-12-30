@@ -285,3 +285,4 @@ FQETree = function(simData, policyFun, mtryArg=NULL, nodesizeArg=50, seed=42,
   
   return(returnList)
 }
+
