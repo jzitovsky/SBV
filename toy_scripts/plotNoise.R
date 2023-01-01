@@ -10,15 +10,17 @@ for (x_vals in x) {
   sbv_valid = c(sbv_valid, cor_table['msbe', 'sbv'])
 }
 dat = data.frame(x = rep(x,2), estimates = c(emsbe_valid,sbv_valid), 
-                 estimate=c(rep('emsbe',6), rep('sbv',6)))
+                 estimate=c(rep('EMSBE',6), rep('SBV',6)))
 
 #make plot
 noise_plot = ggplot(data=dat, aes(x=0.75-x, y=estimates, color=estimate)) +
   geom_line() +
   geom_point() + 
   ylab('Spearman Corr w/ MSBE') +
-  xlab('stochasticity') +
-  theme_minimal(base_size = 15) 
+  xlab('Stochasticity') +
+  scale_color_manual(values = c("#D55E00", "#0072B2")) +
+  theme_minimal(base_size = 15) +
+  guides(color=guide_legend(title="Estimator"))
 noise_plot = ggpubr::ggarrange(noise_plot, ncol=1, nrow=1, common.legend=TRUE, legend='bottom')
 plot(noise_plot)
 
