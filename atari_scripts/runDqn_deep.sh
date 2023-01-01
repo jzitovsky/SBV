@@ -1,6 +1,6 @@
 #!/bin/bash
 Game=$1
-cd batch_rl_ddqn_SArch
+cd batch_rl_dqn_deep
 
 python -um batch_rl.fixed_replay.train \
   --base_dir="../tmp/dqn_deep" \
