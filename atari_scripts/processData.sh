@@ -9,7 +9,7 @@ mkdir  ${Folder}/logs
 gsutil -m cp -R gs://atari-replay-datasets/dqn/${Game}/${Run}/replay_logs ${Folder}/logs
 
 #copying code from master
-cp -r scripts/* ${Folder}
+cp -r atari_scripts/* ${Folder}
 
 #partioning data
 cd ${Folder}
