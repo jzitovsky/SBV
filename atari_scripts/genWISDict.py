@@ -42,7 +42,7 @@ valid_propensities = np.clip(valid_propensities, 0.01/num_actions, 0.99 + 0.01/n
 
 
 #get viable runs, iterations and returns
-all_runs = ['dqn', 'ddqn_SArch']
+all_runs = ['dqn', 'dqn_deep']
 runs, iters, returns = [], [], []
 for run in all_runs:
     if not os.path.exists('tmp/' + run): continue
