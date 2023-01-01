@@ -45,9 +45,7 @@ actions, rewards, terminals, deletes = actions[3:], rewards[3:], terminals[3:], 
 dat_length = actions.shape[0]
 num_actions = np.unique(actions).shape[0]
 actions_OHE = np.eye(num_actions)[actions]
-actions_OHE_alt = np.eye(num_actions)[np.random.randint(0,num_actions,dat_length)]
 acions_OHE = tf.convert_to_tensor(actions_OHE, dtype='float32')
-actions_OHE_alt = tf.convert_to_tensor(actions_OHE_alt, dtype='float32')
 gamma=0.99
 
 
@@ -83,5 +81,3 @@ y = np.stack((targets, weights), axis=1)
 np.save(output_dir + '/y_' + run + '_' + str(iter), y)
 q_vals = keras.layers.Dot(axes=1)([q_preds, actions_OHE]).eval(session=tf.Session()).reshape(-1)
 np.save(output_dir + '/q_vals_' + run + '_' + str(iter), q_vals)
-q_vals_alt = keras.layers.Dot(axes=1)([q_preds, actions_OHE_alt]).eval(session=tf.Session()).reshape(-1)
-np.save(output_dir + '/q_vals_alt_' + run + '_' + str(iter), q_vals_alt)
