@@ -3,7 +3,7 @@ Game=$1
 cd batch_rl_ddqn_SArch
 
 python -um batch_rl.fixed_replay.train \
-  --base_dir="../tmp/ddqn_SArch" \
+  --base_dir="../tmp/dqn_deep" \
   --replay_dir="../data/train2" \
   --gin_files="batch_rl/fixed_replay/configs/dqn.gin" \
   --gin_bindings='WrappedFixedReplayBuffer.replay_capacity=400000' \
