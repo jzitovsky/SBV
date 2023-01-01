@@ -6,7 +6,7 @@ from dopamine.colab.utils import read_experiment
 
 
 #get runs, iterations, policy returns
-all_runs = ['dqn', 'ddqn_SArch']
+all_runs = ['dqn', 'dqn_deep']
 runs, iters, returns = [], [], []
 for run in all_runs:
     if not os.path.exists('tmp/' + run): continue
