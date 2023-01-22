@@ -9,8 +9,8 @@ msbe_plot = ggplot(mapping=aes(color=color)) +
   geom_errorbar(data=summary_dat, mapping=aes(x=color, ymin=min, ymax=max)) + 
   geom_jitter(mapping=aes(x=color, y=stand_returns), position = position_jitter(width =.2)) +
   scale_color_manual(values = c('red', 'gold3', 'green3')) +
-  theme_minimal(base_size = 15) + 
-  theme(legend.position='none') +
+  theme_minimal(base_size = 16.5) + 
+  theme(legend.position='none', axis.text=element_text(size=16.5), axis.title=element_text(size=17.5)) +
   ylab('Return') + 
   xlab('MSBE Category')
 pdf(file="msbe_plot.pdf", width=6, height=4)

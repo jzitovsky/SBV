@@ -31,10 +31,10 @@ plot_game = function(target_table, sbv_table, wis_table, env, config='ddqn_SArch
     geom_vline(data=points, aes(xintercept=x, color=method), linetype='dashed', key_glyph = "path") +
     geom_hline(yintercept=returns[length(returns)], linetype='twodash') + 
     xlab('Iteration') + 
-    ylab('Return') + 
     ggtitle(env) +
     theme(plot.title = element_text(hjust = 0.5, size=20),
-          legend.text = element_text(size=15)) +
+          legend.title=element_text(size=19), legend.text=element_text(size=19),
+          axis.title=element_text(size=18), axis.text=element_text(size=15)) +
     scale_color_manual(values = c("#0072B2", "#E69F00", "#009E73")) +
     guides(color=guide_legend(title='Method'))
  
@@ -45,7 +45,7 @@ plot_game = function(target_table, sbv_table, wis_table, env, config='ddqn_SArch
 
 
 #construct plots
-theme_set(theme_minimal(base_size = 15))
+theme_set(theme_minimal(base_size = 18))
 #args = commandArgs(trailingOnly=TRUE)
 args = c('Asterix2', 'Breakout2', 'Pong2', 'Seaquest2')
 target_table_asterix = read.csv(paste(args[1], '/target_dict.csv', sep=''), header = T, row.names=1)
@@ -69,8 +69,9 @@ wis_table_seaquest = read.csv(paste(args[4], '/wis_dict.csv', sep=''), header = 
 seaquest_plot = plot_game(target_table_seaquest, sbv_table_seaquest, wis_table_seaquest, env='Seaquest')
 
 
-game_plot = ggpubr::ggarrange(pong_plot, breakout_plot, asterix_plot, seaquest_plot, 
-                              ncol=4, nrow=1, common.legend=TRUE, legend='bottom')
-pdf(file="game_plot2.pdf", width=13, height=4)
+game_plot = ggpubr::ggarrange(pong_plot+ylab('Return'), breakout_plot+theme(axis.title.y=element_blank()), 
+                              asterix_plot+theme(axis.title.y=element_blank()), seaquest_plot+theme(axis.title.y=element_blank()), 
+                              nrow=1, widths=c(-0.5,-0.5,-0.5,-0.5), common.legend=TRUE, legend='bottom')
+pdf(file="game_plot2.pdf", width=13, height=4.5)
 plot(game_plot)
 dev.off()
