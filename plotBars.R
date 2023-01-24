@@ -63,7 +63,8 @@ value_plot = ggplot(subset(df, metric=='value'),
                 position=position_dodge(.9)) + 
   theme_minimal(base_size = 16.5) +
   theme(axis.text=element_text(size=16.5), axis.title=element_text(size=17.5),
-        legend.text=element_text(size=16.5), legend.title=element_text(size=17.5)) + 
+        legend.text=element_text(size=16.5), legend.title=element_text(size=17.5),
+        panel.grid.minor = element_blank()) + 
   scale_fill_manual(values=c('#E69F00','#0072B2','#009E73')) + 
   ylab('Top-3 Policy Value') +
   xlab('Environment') + 
@@ -84,7 +85,8 @@ spearman_plot = ggplot(subset(df, metric=='spearman'),
                 position=position_dodge(.9)) + 
   theme_minimal(base_size = 16.5) +
   theme(axis.text=element_text(size=16.5), axis.title=element_text(size=17.5),
-        legend.text=element_text(size=16.5), legend.title=element_text(size=17.5)) + 
+        legend.text=element_text(size=16.5), legend.title=element_text(size=17.5),
+        panel.grid.minor = element_blank()) + 
   scale_fill_manual(values=c('#E69F00','#0072B2','#009E73')) + 
   ylab('Spearman\'s Rho') +
   xlab('Environment') + 

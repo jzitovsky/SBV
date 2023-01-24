@@ -39,7 +39,8 @@ plot_game = function(target_table, sbv_table, wis_table, env, config='ddqn_SArch
     ggtitle(env) +
     theme(plot.title = element_text(hjust = 0.5, size=20),
           legend.title=element_text(size=19), legend.text=element_text(size=19),
-          axis.title=element_text(size=19), axis.text=element_text(size=15)) +
+          axis.title=element_text(size=19), axis.text=element_text(size=15),
+          panel.grid.minor = element_blank()) +
     scale_color_manual(values = c("#0072B2", "#E69F00", "#009E73")) +
     guides(color=guide_legend(title='Method'))
     

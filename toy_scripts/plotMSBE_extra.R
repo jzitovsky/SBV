@@ -13,7 +13,7 @@ msbe_plot = ggplot(mapping=aes(color=color)) +
   theme_minimal(base_size = 16.5) +
   theme(axis.text=element_text(size=16.5), axis.title=element_text(size=17.5), 
         legend.text=element_text(size=16.5), legend.title=element_text(size=17.5),
-        legend.position = "none") +
+        legend.position = "none", panel.grid.minor.y = element_blank()) +
   guides(color=guide_legend(title="MSBE Category")) +
   ylab('Returns') + 
   xlab('MSBE Ranks') + 

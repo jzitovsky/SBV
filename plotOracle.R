@@ -30,7 +30,8 @@ mHealth_plot = ggplot(data=dat, aes(x=k, y=topk, color=estimate)) +
     theme_minimal(base_size = 16.5) + 
     theme(plot.title = element_text(hjust = 0.5, size=18),
           legend.title=element_text(size=17.5), legend.text=element_text(size=16.5),
-          axis.title=element_text(size=17.5), axis.text=element_text(size=16.5), axis.title.y=element_blank()) 
+          axis.title=element_text(size=17.5), axis.text=element_text(size=16.5), axis.title.y=element_blank(),
+          panel.grid.minor = element_blank()) 
 
 
 
@@ -61,7 +62,8 @@ bike_plot = ggplot(data=dat, aes(x=k, y=topk, color=estimate)) +
     guides(color=guide_legend(title='Method')) + 
     theme(plot.title = element_text(hjust = 0.5, size=18),
           legend.title=element_text(size=17.5), legend.text=element_text(size=16.5),
-          axis.title=element_text(size=17.5), axis.text=element_text(size=16.5)) 
+          axis.title=element_text(size=17.5), axis.text=element_text(size=16.5),
+          panel.grid.minor = element_blank()) 
 
 small_plot = ggpubr::ggarrange(bike_plot, mHealth_plot,
                               nrow=1, common.legend=TRUE, legend='bottom')

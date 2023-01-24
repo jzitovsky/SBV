@@ -26,7 +26,8 @@ plot_game = function(game) {
     guides(color=guide_legend(title='Method')) + 
     theme(plot.title = element_text(hjust = 0.5, size=20),
           legend.title=element_text(size=19), legend.text=element_text(size=19),
-          axis.title=element_text(size=19), axis.text=element_text(size=15))
+          axis.title=element_text(size=19), axis.text=element_text(size=15),
+          panel.grid.minor = element_blank())
   return(game_plot)
 }
 
