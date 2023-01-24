@@ -11,7 +11,7 @@ msbe_plot = ggplot(mapping=aes(color=color)) +
   scale_color_manual(values = c('red', 'gold3', 'green3')) +
   theme_minimal(base_size = 16.5) + 
   theme(legend.position='none', axis.text=element_text(size=16.5), axis.title=element_text(size=17.5), 
-        panel.grid.minor = element_blank(), panel.grid.major.x = element_blank()) +
+        panel.grid.minor = element_blank()) +
   ylab('Return') + 
   xlab('MSBE Category')
 pdf(file="msbe_plot.pdf", width=6, height=4)
