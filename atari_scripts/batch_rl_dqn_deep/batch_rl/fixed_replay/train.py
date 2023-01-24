@@ -65,7 +65,7 @@ class ConvStack(layers.Layer):
 class SArchDQNNetwork(keras.Model):
   def __init__(self, num_actions, name=None):
     super().__init__(name=name)
-    #build a CNN with Josh's architecure
+    #build a CNN with xxx's architecure
     self.main_layers = [CustomConv2D(48, kernel_size=5),
                         layers.LeakyReLU(),
                         CustomConv2D(48),
