@@ -63,7 +63,7 @@ To make reproducability easier, we also store the Q-functions analyzed in sectio
 
 ## References
 <a id="1">[1]</a> 
-Joshua P Zitovsky, Daniel de Marchi, Rishabh Agarwal and Michael R Kosorok. "Revisiting Bellman Errors for Offline Model Selection". arXiv.
+Joshua P Zitovsky, Daniel de Marchi, Rishabh Agarwal and Michael R Kosorok. "Revisiting Bellman Errors for Offline Model Selection". arXiv abs/2302.00141.
 
 <a id="2">[2]</a> 
 Rishabh Agarwal, Dale Schuurmans, and Mohammad Norouzi. "An Optimistic Perspective on Offline Reinforcement Learning". ICML, 2020
